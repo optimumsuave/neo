@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+@import url(http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900);
+
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+body {
+  background: #111;
+  /*overflow: hidden;*/
+}
+
+.link {
+  fill: none;
+  /*stroke: #333;*/
+  stroke-width: 2px;
+}
+
+#licensing {
+  /*fill: green;*/
+}
+
+.link.licensing {
+  /*stroke: green;*/
+}
+
+.link.resolved {
+  stroke-dasharray: 0,2 1;
+}
+
+circle {
+  stroke: #333;
+  stroke-width: 5px;
+  cursor: pointer;
+}
+
+text {
+  /*fill: rgba(0, 169, 190, 0.9);*/
+  /*fill: rgba(0,0,0, 0.6);*/
+  font: 0.8em Montserrat, sans-serif;
+  pointer-events: none;
+  text-shadow: 1px 1px 5px #000;
+  cursor: pointer;
+
+}
+
+.menu {
+  position: absolute;
+  width: 100%;
+  z-index: 0;
+}
+
+.menu svg {
+  background: #333;
+  margin: 0;
+  float: left;
+  width: 100%;
+  overflow: hidden;
+}
+
+.menu.closed svg {
+}
+
+header {
+  position: absolute;
+  z-index: 100;
+}
+
+header.stuck {
+  position: fixed;
+}
+
+.logo {
+text-align: center;
+width: 86px;
+line-height: 86px;
+cursor: pointer;
+}
+
+.logo img{
+  vertical-align: middle;
+  width: 36px;
+}
+
+section {
+  margin: 0;
+  width: 100%;
+  min-height: 1000px;
+  position: relative;
+  z-index: 50;
+  background: #222;
+  -webkit-transform: translate3d(0,500px,0);
+  -moz-transform: translate3d(0,500px,0);
+  -ms-transform: translate3d(0,500px,0);
+  -o-transform: translate3d(0,500px,0);
+  transform: translate3d(0,500px,0);
+
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  -webkit-perspective: 1000;
+  -moz-perspective: 1000;
+  -ms-perspective: 1000;
+  perspective: 1000;
+  transition: transform 1s cubic-bezier(.88,.09,.6,.68);
+
+}
+
+section.closed {
+  -webkit-transform: translate3d(0,0,0);
+  -moz-transform: translate3d(0,0,0);
+  -ms-transform: translate3d(0,0,0);
+  -o-transform: translate3d(0,0,0);
+  transform: translate3d(0,0,0);
+}
+.top {
+  background: rgb(0, 169, 190);
+  width: 100%;
+  height: 10px;
+}
+
+.shell {
+  max-width: 960px;
+  width: 96%;
+  padding: 0 2%;
+  margin:0 auto;
+  margin-top: 100px;
+}
+
+.title {
+  font-family: "Montserrat";
+  color: white;
+  font-size: 3em;
+  display: none;
+}
+
+.stuff {
+  margin-top: 40px;
+  background: #fff;
+  display: none;
+  font-family: "Lato";
+  padding: 40px;
+  color: #222;
+  font-weight: 300;
+  font-size: 1.2em;
+  line-height: 1.6em;
+  max-width: 600px;
+}
+
+p {
+  margin-bottom: 20px;
+}
+
+.color-top {
+  background: transparent;
+  width: 100%;
+  top:0px;
+  position: fixed;
+  z-index: 200;
+  height: 10px;
+}
+
+</style>
+<body>
+<header>
+  <div class="logo">
+    <img src="cmdlogo.svg"/>
+  </div>
+</header>
+<div class="color-top"></div>
+<div class="menu"></div>
+<script src="jquery.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+// http://blog.thomsonreuters.com/index.php/mobile-patent-suits-graphic-of-the-day/
+var links = [
+  {source: "CMD", target: "CMD", type: "licensing", fillColor: "#333", depth: 0},
+  {source: "Workshops", target: "CMD", type: "licensing", fillColor: "rgb(240, 240, 240)", depth: 3},
+  {source: "Resources", target: "CMD", type: "licensing", fillColor: "rgb(199, 199, 199)", depth: 3},
+
+  {source: "HTML", target: "Resources", type: "licensing", fillColor: "rgb(229, 77, 38)", depth: 1},
+  // {source: "Semantic Elements", target: "HTML", type: "licensing", fillColor: "rgb(229, 77, 38)", depth: 2},
+  // {source: "Metadata", target: "HTML", type: "licensing", fillColor: "rgb(229, 77, 38)", depth: 2},
+
+  {source: "CSS", target: "Resources", type: "licensing", fillColor: "rgb(2, 112, 187)", depth: 1},
+  // {source: "Webfonts", target: "CSS", type: "licensing", fillColor: "rgb(2, 112, 187)", depth: 2},
+  // {source: "Box Model", target: "CSS", type: "licensing", fillColor: "rgb(2, 112, 187)", depth: 2},
+  // {source: "Floating", target: "CSS", type: "licensing", fillColor: "rgb(2, 112, 187)", depth: 2},
+  // {source: "Typography", target: "CSS", type: "licensing", fillColor: "rgb(2, 112, 187)", depth: 2},
+
+  {source: "JAVASCRIPT", target: "Resources", type: "licensing", fillColor: "#ffb200", depth: 1},
+  // {source: "jQuery", target: "JAVASCRIPT", type: "licensing", fillColor: "#ffb200", depth: 2},
+  // {source: "Backbone.js", target: "JAVASCRIPT", type: "licensing", fillColor: "#ffb200", depth: 2},
+  // {source: "AJAX", target: "JAVASCRIPT", type: "licensing", fillColor: "#ffb200", depth: 2},
+
+  {source: "Web Design", target: "Resources", type: "licensing", fillColor: "#5CCF00", depth: 1},
+  // {source: "Responsive", target: "Web Design", type: "licensing", fillColor: "#5CCF00", depth: 2},
+  // {source: "Mobile First", target: "Web Design", type: "licensing", fillColor: "#5CCF00", depth: 2},   
+  // {source: "Wireframing", target: "Web Design", type: "licensing", fillColor: "#5CCF00", depth: 2},
+
+  {source: "Business for Web", target: "Resources", type: "licensing", fillColor: "#F0F", depth: 1},
+  // {source: "Clients", target: "Business for Web", type: "licensing", fillColor: "#F0F", depth: 2},
+  // {source: "Analytics", target: "Business for Web", type: "licensing", fillColor: "#F0F", depth: 2},   
+  // {source: "Hosting", target: "Business for Web", type: "licensing", fillColor: "#F0F", depth: 2},
+  // {source: "Domain Names", target: "Business for Web", type: "licensing", fillColor: "#F0F", depth: 2},
+];
+
+var nodes = {};
+
+// Compute the distinct nodes from the links.
+links.forEach(function(link) {
+  link.source = nodes[link.source] || (nodes[link.source] = {name: link.source, fillColor: link.fillColor, depth: link.depth});
+  link.target = nodes[link.target] || (nodes[link.target] = {name: link.target, fillColor: link.fillColor});
+});
+
+// nodes = d3.data(links);
+
+var width = window.outerWidth,
+    height = 500;
+
+var force = d3.layout.force()
+    .nodes(d3.values(nodes))
+    .links(links)
+    .size([width, height])
+    .linkDistance(250)
+    .linkStrength(0.9)
+    .friction(0.9)
+    .gravity(0.4)
+    .theta(0.8)
+    .chargeDistance(2000)
+    .charge(-1000)
+    .on("tick", tick)
+    .start();
+
+var svg = d3.select(".menu").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+// Per-type markers, as they don't inherit styles.
+// svg.append("defs").selectAll("marker")
+//     .data(["suit", "licensing", "resolved"])
+//   .enter().append("marker")
+//     .attr("id", function(d) { return d; })
+//     .attr("viewBox", "0 -5 10 10")
+//     .attr("refX", 40)
+//     .attr("refY", -1.5)
+//     .attr("markerWidth", 6)
+//     .attr("markerHeight", 6)
+//     .attr("orient", "auto")
+//   .append("path")
+//     .attr("d", "M0,-5L10,0L0,5");
+
+var path = svg.append("g").selectAll("path")
+    .data(force.links())
+  .enter().append("path")
+    .attr("class", function(d) { return "link " + d.type; })
+    .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
+
+var circle = svg.append("g").selectAll("circle")
+    .data(force.nodes())
+    .enter().append("circle")
+    .attr("r", function(d){
+      if(d.index == 0){
+        return 34;
+      } else {
+        return 20;
+      }
+    })
+    .attr("fill", function(d){ return d.fillColor; })
+
+// force.stop();
+var n = force.nodes().length;
+ypos = [];
+force.nodes().forEach(function(d, i) {
+  // if(typeof d.depth !== "undefined") {
+    // console.log("yeee", d.depth);
+    if(typeof ypos[d.depth] == "undefined"){
+      ypos[d.depth] = 0;
+    }
+    ypos[d.depth]++;
+    d.py = ypos[d.depth] * (40/d.depth);
+    d.px = d.depth * (width/8)+140;
+    // d.fixed = true;
+    if(d.depth != 0) {
+      // d.fixed = true;
+    }
+    if(d.depth == 1) {
+      d.py = ypos[d.depth] * 50;
+    }
+
+
+    // ypos[d.depth]++;
+    // d.py = (height-1000/ypos[d.depth]);
+    // d.px = ypos[d.depth] * (width/8)+140;
+    // d.fixed = true;
+    // if(d.depth == 1) {
+      // d.fixed = true;
+    // }
+          
+           
+    // } else {
+    //   d.px = d.depth * width/6;
+    // }
+  // }
+});
+
+// var circle = svg.selectAll("circle")
+//     .data(force.links())
+force.nodes()[0].fixed = true;
+force.nodes()[0].name = "";
+force.nodes()[0].px = 43;
+force.nodes()[0].py = 43;
+console.log(force.nodes()[0]);
+
+force.nodes()[1].fixed = true;
+force.nodes()[1].px = 70;
+force.nodes()[1].py = 340;
+
+// force.resume();
+
+
+circle.on("click", function(d) {
+  // force.stop();
+  if (d3.event.defaultPrevented) return; // ignore drag
+  // force.links().forEach(function(dd,i){
+  //   if(dd.target.name == d.name) {
+  //     force.nodes()[dd.source.index].fixed = false;
+  //     console.log("MATCH",force.nodes()[dd.target.index]);
+  //   } else {
+  //     force.fixed = true;
+  //   }
+  // })
+  // d.px = width/2;
+  // d.fixed = true;
+  // d.py = height/2;
+  // force.resume();
+  // force.nodes()[d.index].
+  // force.stop();
+
+  // var _this = this;
+  circle.attr("style", "display:none");
+  text.attr("style", "display: none");
+  // force.nodes().forEach(function(dd,i){
+  //   d3.select(dd).attr("style", "display:none");
+  //   // d3.select(force.links()[i]).attr("style", "display:none");
+  // });
+  d3.select(this).attr("style", "display: block").transition(1000).attr("r", width);
+
+  // console.log(this, d);
+  
+  $("section .top").css("background", "transparent");
+  $("section").addClass("closed");
+  $("header").addClass("stuck");
+  $("section .title").html(d.name).fadeIn(2000);
+  setTimeout(function(){
+    $(".color-top").css("background", d.fillColor);
+  }, 900);
+  setTimeout(function(){
+    $("section .stuff").fadeIn(500);
+  }, 1000);
+  // $("section").css("background-color", d.fillColor)
+});
+
+
+$(".logo").click(function(){
+  setTimeout(function(){
+    circle.attr("style", "display:block").transition(2000).attr("r", function(d){
+      if(d.index == 0){
+        return 34;
+      } else {
+        return 20;
+      }
+    });
+  }, 1000);
+  $(".color-top").css("background", "transparent");
+  $("section").removeClass("closed");
+  $("header").removeClass("stuck");
+  // $("section .top").fadeOut();
+  setTimeout(function(){
+    text.attr("style", "display:block");
+  }, 1400);
+  $("section .title").fadeOut(200);
+  $("section .stuff").hide();
+
+  // force.stop();
+  // force.start();
+});
+
+
+var text = svg.append("g").selectAll("text")
+    .data(force.nodes())
+  .enter().append("text")
+    .attr("x", 30)
+    .attr("y", ".31em")
+    .attr("fill", function(d){ return d.fillColor; })
+    .text(function(d) { return d.name; });
+
+
+
+// Use elliptical arc path segments to doubly-encode directionality.
+function tick() {
+  path.attr("d", linkArc);
+  path.attr("stroke", function(d){ return d.fillColor });
+  path.attr("opacity",0.4);
+  // path.attr("stroke", "#333");
+  circle.attr("transform",transform);
+  text.attr("transform", transform);
+}
+
+function linkArc(d) {
+  var dx = d.target.x - d.source.x,
+      dy = d.target.y - d.source.y,
+      dr = Math.sqrt(dx * dx + dy * dy);
+      // if(d.depth != 1) {
+        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+      // } else {
+        // return "M" + d.source.x + "," + d.source.y + " L" + d.target.x + "," + d.target.y;
+      // }
+}
+
+function transform(d) {
+  return "translate(" + d.x + "," + d.y + ")";
+}
+
+</script>
+
+<section>
+<div class="top"></div>
+  <div class="shell">
+    <h1 class="title"></h1>
+
+    <div class="stuff">
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur dignissim venenatis justo sollicitudin scelerisque. Proin at odio quis purus consectetur dictum quis ac erat. Vivamus a lorem vitae neque venenatis pulvinar. Donec porta nulla enim, id volutpat tortor dapibus ac. Sed aliquet euismod justo non gravida. In dictum urna nec lorem sagittis, sed malesuada nisi cursus. Aliquam in sapien odio. Etiam ligula enim, finibus non sagittis ut, lobortis eget quam. Cras feugiat tempor pretium.</p>
+
+      <p>Donec sit amet ultricies mauris, bibendum vulputate augue. Aenean et felis tortor. Donec arcu urna, imperdiet non lorem eget, tincidunt fringilla justo. Praesent mauris ante, aliquam in semper vel, aliquam a lectus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Praesent pulvinar cursus erat sit amet varius. Vivamus feugiat ut nibh fermentum ornare. Aenean mattis ipsum leo, faucibus dictum dui pretium ac. Cras volutpat venenatis ligula, et vulputate metus rutrum eget. Cras nunc dui, ullamcorper sed aliquet quis, luctus vitae libero. Sed et faucibus enim, sit amet efficitur nibh. Nulla sed nunc eu nibh suscipit rutrum sed vitae nunc. Duis feugiat mauris sed eros tempus porta. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
+
+      <p>Morbi efficitur orci laoreet mauris sagittis, non faucibus est ultricies. Vestibulum venenatis mauris ut tellus porttitor viverra. Mauris a quam ullamcorper, luctus felis quis, finibus enim. Nulla accumsan enim quis nibh posuere, ut pulvinar neque pellentesque. Pellentesque id molestie enim. Morbi vel pulvinar orci, sit amet suscipit quam. Proin sollicitudin gravida sem sed fermentum. Donec vehicula tortor hendrerit placerat interdum. Sed venenatis suscipit nunc, eu ullamcorper lacus varius eget. Vestibulum a odio dolor. Suspendisse potenti. Sed ipsum justo, pretium sed iaculis vitae, ultricies sed ex.</p>
+
+
+    </div>
+  </div>  
+</section>
+
+</body>
+</html>
