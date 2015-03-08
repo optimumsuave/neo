@@ -412,6 +412,7 @@ circle.on("click", function(d) {
 
 
 $(".logo").click(function(){
+  $("body").animate({scrollTop: 0}, 500);
   setTimeout(function(){
     circle.attr("style", "display:block").transition(2000).attr("r", function(d){
       if(d.index == 0){
